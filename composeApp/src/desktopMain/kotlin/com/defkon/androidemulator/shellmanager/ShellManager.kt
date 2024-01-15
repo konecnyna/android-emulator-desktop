@@ -11,42 +11,56 @@ class ShellManager {
             println("Running cmd: ${shellCommand.cmd}")
 
             val processBuilder = ProcessBuilder(shellCommand.cmd)
-            val process = processBuilder
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start()
+            val process = processBuilder.start()
 
             val writer = BufferedWriter(OutputStreamWriter(process.outputStream))
             val bufferedReader = process.inputStream.bufferedReader()
 
-            val output = bufferedReader.use {
-                val text = it.readText()
-                shellCommand.stream(writer, text.trim())
-                text
+            val outputBuilder = StringBuilder()
+            val errorBuilder = StringBuilder()
+
+            val readThread = Thread {
+                bufferedReader.useLines { lines ->
+                    lines.forEach {
+                        outputBuilder.append(it).append("\n")
+                        shellCommand.stream(writer, it)
+                    }
+                }
             }
 
-            val error = process.errorStream.bufferedReader().use {
-                val errorText = it.readText().trim()
-                println(errorText)
-                errorText
+            val errorThread = Thread {
+                process.errorStream.bufferedReader().useLines { lines ->
+                    lines.forEach {
+                        errorBuilder.append(it).append("\n")
+                        println(it)
+                    }
+                }
             }
+
+            readThread.start()
+            errorThread.start()
+            readThread.join()
+            errorThread.join()
 
             val exitValue = process.waitFor()
+            val output = outputBuilder.toString().trim()
+            val error = errorBuilder.toString().trim()
+
             if (error.isNotEmpty()) {
                 ShellResult.Failure(
-                    error = error.trim(),
-                    exitValue = exitValue
+                        error = error,
+                        exitValue = exitValue
                 )
             } else {
                 ShellResult.Success(
-                    output = output.trim(),
-                    exitValue = exitValue
+                        output = output,
+                        exitValue = exitValue
                 )
             }
         } catch (exception: Exception) {
             ShellResult.Failure(
-                error = exception.message ?: "No message provided",
-                exitValue = -1
+                    error = exception.message ?: "No message provided",
+                    exitValue = -1
             )
         }
     }

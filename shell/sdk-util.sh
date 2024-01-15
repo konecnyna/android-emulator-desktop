@@ -1,4 +1,10 @@
 #!/bin/bash
+# Resources used:
+# https://gist.github.com/iliiliiliili/61917ce2ed127104773712fcf54731c1
+# https://developer.android.com/studio/index.html#command-line-tools-only
+# https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
+# https://dl.google.com/android/repository/platform-tools-latest-darwin.zip
+
 export ANDROID_HOME=`pwd`
 
 export PATH=$ANDROID_HOME/emulator/:$PATH
@@ -62,11 +68,11 @@ install_system_image() {
   mkdir platforms
   mkdir platform-tools
   sdkmanager --update
-  yes|sdkmanager --verbose --sdk_root="$ANDROID_HOME" "system-images;android-30;google_apis_playstore;x86_64"
+  yes|sdkmanager --verbose --sdk_root="$ANDROID_HOME" "system-images;android-33;google_apis_playstore;x86_64"
 }
 
 create_avd() {
-  echo "no"|avdmanager --verbose create avd --name "$1" --package 'system-images;android-30;google_apis_playstore;x86_64' --device pixel_7_pro
+  echo "no"|avdmanager --verbose create avd --name "$1" --package 'system-images;android-33;google_apis_playstore;x86_64' --device pixel_7_pro
 }
 
 launch_avd() {

@@ -47,4 +47,4 @@ shell/platform/
 shell/system-images/
 shell/emulator/
 shell/.android/*
-shell/.knowPackages
+shell/.knownPackages

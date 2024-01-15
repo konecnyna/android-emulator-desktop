@@ -3,74 +3,41 @@ package com.defkon.androidemulator.sdkmanager
 import com.defkon.androidemulator.shellmanager.ShellCommand
 import com.defkon.androidemulator.shellmanager.ShellManager
 import com.defkon.androidemulator.shellmanager.ShellResult
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.io.File
 
-// https://gist.github.com/iliiliiliili/61917ce2ed127104773712fcf54731c1
-// https://developer.android.com/studio/index.html#command-line-tools-only
-// https://dl.google.com/android/repository/platform-tools-latest-darwin.zip
-// dl: https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
+
 class SdkManager {
     private val workingDir = File(System.getProperty("user.dir")).parent
-    private val sdkRoot = "$workingDir/bin/sdk"
     private val shellManager = ShellManager()
-    val cmdLineToolsFolder = "$sdkRoot/cmdline-tools/latest/bin"
-    val sdkManagerBin = "$cmdLineToolsFolder/sdkmanager"
-    val avdmanagerBin = "$cmdLineToolsFolder/avdmanager"
 
-    fun setup() {
-        shellManager.runCommand(ShellCommand(
-            cmd = listOf(
-                "/bin/sh",
-                "-c",
-                "$workingDir/bin/sdk-util.sh"
-            ),
-            stream = { writer, output ->
 
-                println(output)
-                writer.write("no\n")
-                writer.flush()
-                writer.close()
-            }
-        ))
-//        val cpu = getCpuType()
-//        if (cpu == CpuType.unknown) {
-//            println("Error: Unknown cpu type")
-//            return
-//        }
-//
-//        setupSdkManager(cpu)
-//        setupEmulator()
+    fun setup(): Flow<SetupStateEvent> = flow {
+        emit(SetupStateEvent.Initializing)
+        val cpu = getCpuType()
+        if (cpu != CpuType.x86_64) {
+            emit(SetupStateEvent.Error(message = "Error: Unsupported cpu type ($cpu)"))
+            return@flow
+        }
+
+        emit(SetupStateEvent.DownloadDependencies)
+        runStep(SetupStateEvent.DownloadDependencies)
+
+        emit(SetupStateEvent.InstallTools)
+        runStep(SetupStateEvent.InstallTools)
+
+        emit(SetupStateEvent.CreateAvd)
+        runStep(SetupStateEvent.CreateAvd, DEFAULT_AVD_NAME)
+
+        emit(SetupStateEvent.LaunchAvd)
+        runStep(SetupStateEvent.LaunchAvd, DEFAULT_AVD_NAME)
     }
 
-    private fun setupEmulator() {
-        val test = shellManager.runCommand(ShellCommand(
-            cmd = listOf(
-                "/bin/sh",
-                "-c",
-                "$avdmanagerBin create avd --name \"foo\" --package \"system-images;android-33;google_apis_playstore;x86_64\""
-//                "$avdmanagerBin create avd --name \"foo\"",
-//                "create avd --name \"foo\"",
-//                "avd",
-//                "--name",
-//                "bb"
-//                "--package system-images;android-33;google_apis_playstore;x86_64'",
-            ),
-            stream = { writer, output ->
-
-                println(output)
-                writer.write("no\n")
-                writer.flush()
-                writer.close()
-            }
-        ))
-        println("!!!!!!!")
-        println(test)
-    }
 
     private fun getCpuType(): CpuType {
         val type = shellManager.runCommand(ShellCommand(
             cmd = listOf("uname", "-m"),
-//            stream = { println(it) }
         ))
 
         return when (type) {
@@ -79,34 +46,33 @@ class SdkManager {
         }
     }
 
-    private fun setupSdkManager(cpu: CpuType) {
-        val result = shellManager.runCommand(ShellCommand(
-            cmd = listOf(sdkManagerBin, "platform-tools"),
-//            stream = { println(it) }
-        ))
-        println(result)
-
-        val imageCpuType = when (cpu) {
-            CpuType.x86_64 -> "x86_64"
-            CpuType.arm64 -> "arm64-v8a"
-            CpuType.unknown -> {} //fix with sealed class
-        }
-
+    private fun runStep(step: SetupStateEvent, arg1: String = "") {
         shellManager.runCommand(ShellCommand(
             cmd = listOf(
-                sdkManagerBin,
-                "--verbose",
-                "--sdk_root=/Users/defkon/github/android-emulator/bin/sdk",
-                "system-images;android-33;google_apis_playstore;$imageCpuType"
+                    "/bin/sh",
+                    "-c",
+                    "$workingDir/shell/sdk-util.sh ${step.shellCmd} $arg1"
             ),
-//            stream = { println(it) }
+            stream = { writer, output ->
+                println(output)
+            }
         ))
+    }
+
+    companion object {
+        const val DEFAULT_AVD_NAME = "android"
     }
 }
 
-sealed interface SetupStateEvent {
-    data object Initializing : SetupStateEvent
-    data object UpdateSdk : SetupStateEvent
+sealed class SetupStateEvent(val stepName: String, val shellCmd: String) {
+    data object Initializing : SetupStateEvent(stepName = "Initializing", shellCmd = "")
+    data object DownloadDependencies : SetupStateEvent(stepName = "Download Dependencies", shellCmd = "download_sdk_tools")
+    data object InstallTools : SetupStateEvent(stepName = "Install Tools", shellCmd = "install_system_image")
+    data object DeleteAvd : SetupStateEvent(stepName = "Delete Avd", shellCmd = "delete_avd")
+    data object CreateAvd : SetupStateEvent(stepName = "Create Avd", shellCmd = "create_avd")
+    data object LaunchAvd : SetupStateEvent(stepName = "Launch Avd", shellCmd = "launch_avd")
+    data class Error(val message: String) : SetupStateEvent(stepName = "Error", shellCmd = "")
+    data class Console(val message: String) : SetupStateEvent(stepName = "Console", shellCmd = "")
 }
 
 
