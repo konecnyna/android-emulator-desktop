@@ -41,8 +41,10 @@ captures
 
 
 # shell
+shell/cmdline-tools/
 shell/licenses/
 shell/platform/
 shell/system-images/
 shell/emulator/
 shell/.android/*
+shell/.knowPackages

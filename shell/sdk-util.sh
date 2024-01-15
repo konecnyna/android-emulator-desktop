@@ -61,6 +61,7 @@ install_system_image() {
   # Emulator launch fails without empty dir
   mkdir platforms
   mkdir platform-tools
+  sdkmanager --update
   yes|sdkmanager --verbose --sdk_root="$ANDROID_HOME" "system-images;android-30;google_apis_playstore;x86_64"
 }
 
