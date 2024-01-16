@@ -1,10 +1,31 @@
 package com.defkon.androidemulator.shellmanager
 
+import com.defkon.androidemulator.managers.SetupStateEvent
 import java.io.BufferedWriter
+import java.io.File
 import java.io.OutputStreamWriter
 
 class ShellManager {
-    //private val runtime: Runtime = Runtime.getRuntime()
+    private val workingDir = File(System.getProperty("user.dir")).parent
+
+    fun runSdkUtilShellCommand(
+        step: SetupStateEvent,
+        arg1: String = "",
+        stream: (String) -> Unit = { }
+    ): ShellResult {
+
+        return runCommand(ShellCommand(
+            cmd = listOf(
+                "/bin/sh",
+                "-c",
+                "$workingDir/shell/sdk-util.sh ${step.shellCmd} $arg1"
+            ),
+            stream = { _, output ->
+                println(output)
+                stream(output)
+            }
+        ))
+    }
 
     fun runCommand(shellCommand: ShellCommand): ShellResult {
         return try {
@@ -48,19 +69,19 @@ class ShellManager {
 
             if (error.isNotEmpty()) {
                 ShellResult.Failure(
-                        error = error,
-                        exitValue = exitValue
+                    error = error,
+                    exitValue = exitValue
                 )
             } else {
                 ShellResult.Success(
-                        output = output,
-                        exitValue = exitValue
+                    output = output,
+                    exitValue = exitValue
                 )
             }
         } catch (exception: Exception) {
             ShellResult.Failure(
-                    error = exception.message ?: "No message provided",
-                    exitValue = -1
+                error = exception.message ?: "No message provided",
+                exitValue = -1
             )
         }
     }

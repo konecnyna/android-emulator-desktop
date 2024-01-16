@@ -9,7 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.defkon.androidemulator.sdkmanager.SetupStateEvent
+import com.defkon.androidemulator.managers.SetupStateEvent
 import com.defkon.androidemulator.ui.sdkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,27 +23,36 @@ fun InstallScreen() {
     var status by remember { mutableStateOf("Create Android Emulator") }
     var console by remember { mutableStateOf("") }
 
-
     Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Image(
-                painter = painterResource("icon.png"),
-                contentDescription = null,
-                modifier = Modifier.size(256.dp)
+            painter = painterResource("icon.png"),
+            contentDescription = null,
+            modifier = Modifier.size(256.dp)
         )
+
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = status)
-        AnimatedVisibility(visible = console.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(text = console)
-        }
         Spacer(modifier = Modifier.height(16.dp))
+
+        AnimatedVisibility(visible = installing) {
+            Box(
+                modifier = Modifier.padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = console,
+                    maxLines = 1
+                )
+            }
+        }
+
         Button(
-                onClick = { installing = true },
-                enabled = !installing
+            onClick = { installing = true },
+            enabled = !installing
         ) {
             Text("Install")
         }
@@ -59,7 +68,9 @@ fun InstallScreen() {
                         is SetupStateEvent.Error -> {
                             status = "Error!"
                             console = it.message
+                            installing = false
                         }
+
                         else -> {
                             status = it.stepName
                         }
