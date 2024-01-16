@@ -13,7 +13,7 @@ class SdkManager {
     private val shellManager = ShellManager()
 
 
-    fun setup(): Flow<SetupStateEvent> = flow {
+    fun setup(console: (String) -> Unit): Flow<SetupStateEvent> = flow {
         emit(SetupStateEvent.Initializing)
         val cpu = getCpuType()
         if (cpu != CpuType.x86_64) {
@@ -22,16 +22,24 @@ class SdkManager {
         }
 
         emit(SetupStateEvent.DownloadDependencies)
-        runStep(SetupStateEvent.DownloadDependencies)
+        runStep(SetupStateEvent.DownloadDependencies) {
+            console(it)
+        }
 
         emit(SetupStateEvent.InstallTools)
-        runStep(SetupStateEvent.InstallTools)
+        runStep(SetupStateEvent.InstallTools)  {
+            console(it)
+        }
 
         emit(SetupStateEvent.CreateAvd)
-        runStep(SetupStateEvent.CreateAvd, DEFAULT_AVD_NAME)
+        runStep(SetupStateEvent.CreateAvd, DEFAULT_AVD_NAME)  {
+            console(it)
+        }
 
         emit(SetupStateEvent.LaunchAvd)
-        runStep(SetupStateEvent.LaunchAvd, DEFAULT_AVD_NAME)
+        runStep(SetupStateEvent.LaunchAvd, DEFAULT_AVD_NAME)  {
+            console(it)
+        }
     }
 
 
@@ -46,16 +54,14 @@ class SdkManager {
         }
     }
 
-    private fun runStep(step: SetupStateEvent, arg1: String = "") {
+    private suspend fun runStep(step: SetupStateEvent, arg1: String = "", stream: (String) -> Unit = {}) {
         shellManager.runCommand(ShellCommand(
             cmd = listOf(
                     "/bin/sh",
                     "-c",
                     "$workingDir/shell/sdk-util.sh ${step.shellCmd} $arg1"
             ),
-            stream = { writer, output ->
-                println(output)
-            }
+            stream = { _, output -> stream(output) }
         ))
     }
 

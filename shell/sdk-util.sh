@@ -5,7 +5,8 @@
 # https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
 # https://dl.google.com/android/repository/platform-tools-latest-darwin.zip
 
-export ANDROID_HOME=`pwd`
+export ANDROID_HOME="`pwd`/shell"
+
 
 export PATH=$ANDROID_HOME/emulator/:$PATH
 export PATH=$ANDROID_HOME/platform-tools/:$PATH
