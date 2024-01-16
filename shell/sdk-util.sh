@@ -4,28 +4,29 @@
 # https://developer.android.com/studio/index.html#command-line-tools-only
 # https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
 # https://dl.google.com/android/repository/platform-tools-latest-darwin.zip
-
-export ANDROID_HOME="`pwd`/shell/sdk"
+SCRIPT_DIR="$(dirname "$0")"
+export ANDROID_HOME="$SCRIPT_DIR/sdk"
 mkdir -p $ANDROID_HOME
 
 export PATH=$ANDROID_HOME/emulator/:$PATH
 export PATH=$ANDROID_HOME/platform-tools/:$PATH
 export PATH=$ANDROID_HOME/cmdline-tools/tools/bin/:$PATH
 
-export ANDROID_SDK_ROOT=`pwd`
+export ANDROID_SDK_ROOT=$ANDROID_HOME
 export ANDROID_AVD_HOME="$ANDROID_HOME/.android/avd"
 export ANDROID_EMULATOR_HOME="$ANDROID_HOME/.android"
 
 download_sdk_tools() {
     local cmdline_tools_dir="$ANDROID_HOME/cmdline-tools"
     local download_url="https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip"
-    local zip_file="commandlinetools.zip"
+    local zip_file="$SCRIPT_DIR/commandlinetools.zip"
 
     echo "Checking for cmdline-tools directory..."
 
     # Check if cmdline-tools directory exists
     if [ ! -d "$cmdline_tools_dir" ]; then
-        echo "cmdline-tools directory not found. Downloading..."
+
+        echo "cmdline-tools directory not found. Downloading... ($zip_file)s"
 
         # Download the cmdline-tools
         curl -o "$zip_file" "$download_url" && echo "Download complete."
@@ -34,8 +35,7 @@ download_sdk_tools() {
         echo "Unzipping cmdline-tools..."
         # Tools dir is needed emulator as it needs VERY precise structure - https://stackoverflow.com/questions/60992720/cannot-run-android-emulator-using-command-line-tools-on-linux-panic-broken-avd
         mkdir -p "$cmdline_tools_dir/tools"
-        unzip -q "$zip_file" -d "$cmdline_tools_dir" && mv "$cmdline_tools_dir"/cmdline-tools/* "$cmdline_tools_dir/tools" && rm -r -r "$cmdline_tools_dir"/cmdline-tools && echo "Unzipping complete."
-
+        unzip -q "$zip_file" -d "$cmdline_tools_dir" && mv "$cmdline_tools_dir"/cmdline-tools/* "$cmdline_tools_dir/tools" && rm -r "$cmdline_tools_dir"/cmdline-tools && echo "Unzipping complete."
 
         # Clean up the downloaded zip file
         rm -r "$zip_file" && echo "Clean up complete."
@@ -66,8 +66,8 @@ delete_avd() {
 install_system_image() {
   mkdir -p "$ANDROID_HOME/.android/avd"
   # Emulator launch fails without empty dir
-  mkdir platforms
-  mkdir platform-tools
+  mkdir "$ANDROID_HOME/platforms"
+  mkdir "$ANDROID_HOME/platform-tools"
   sdkmanager --update
   yes|sdkmanager --verbose --sdk_root="$ANDROID_HOME" "system-images;android-33;google_apis_playstore;x86_64"
 }
