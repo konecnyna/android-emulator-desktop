@@ -31,6 +31,8 @@ fun DeviceManagementScreen(emulators: List<AvdEntity>) {
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(32.dp))
+        Text(text = " Devices:")
+        Spacer(modifier = Modifier.height(8.dp))
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
                 emulators.map {

@@ -1,5 +1,6 @@
 package com.defkon.androidemulator.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -14,14 +15,18 @@ import com.defkon.androidemulator.managers.SdkManager
 import com.defkon.androidemulator.shellmanager.ShellManager
 import com.defkon.androidemulator.ui.screens.devicemgmt.DeviceManagementScreen
 import com.defkon.androidemulator.ui.screens.InstallScreen
+import com.defkon.androidemulator.ui.screens.splash.SplashScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
 val sdkManager = SdkManager()
 val shellManager = ShellManager()
 val avdManager = AvdManager()
 
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
     var loading by remember { mutableStateOf(true) }
@@ -39,20 +44,10 @@ fun App() {
     }
 
     MaterialTheme {
-        if (emulators.isNotEmpty() && !loading) {
-            DeviceManagementScreen(emulators)
-        } else if (loading) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.width(64.dp),
-                )
-            }
-        } else {
-            InstallScreen()
+        when {
+            emulators.isNotEmpty() && !loading -> DeviceManagementScreen(emulators)
+            loading -> SplashScreen()
+            else -> InstallScreen()
         }
     }
 }
