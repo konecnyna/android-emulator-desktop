@@ -1,5 +1,6 @@
 package com.defkon.androidemulator.ui.screens.devicemgmt.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Button
@@ -23,7 +24,8 @@ fun DeviceManagementItem(device: AvdEntity, onLaunchClicked: (AvdEntity) -> Unit
         }
 
         Row(
-            modifier = Modifier.weight(2f)
+            modifier = Modifier.weight(2f),
+            horizontalArrangement = Arrangement.End
         ) {
             Button(onClick = { onLaunchClicked(device) }) {
                 Text("Launch")
