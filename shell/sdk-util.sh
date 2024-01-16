@@ -5,8 +5,8 @@
 # https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
 # https://dl.google.com/android/repository/platform-tools-latest-darwin.zip
 
-export ANDROID_HOME="`pwd`/shell"
-
+export ANDROID_HOME="`pwd`/shell/sdk"
+mkdir -p $ANDROID_HOME
 
 export PATH=$ANDROID_HOME/emulator/:$PATH
 export PATH=$ANDROID_HOME/platform-tools/:$PATH
@@ -17,7 +17,7 @@ export ANDROID_AVD_HOME="$ANDROID_HOME/.android/avd"
 export ANDROID_EMULATOR_HOME="$ANDROID_HOME/.android"
 
 download_sdk_tools() {
-    local cmdline_tools_dir="cmdline-tools"
+    local cmdline_tools_dir="$ANDROID_HOME/cmdline-tools"
     local download_url="https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip"
     local zip_file="commandlinetools.zip"
 
@@ -81,12 +81,12 @@ launch_avd() {
 }
 
 list_avds() {
-#  avdmanager list device
+  # avdmanager list device
   avdmanager list avd
 }
 
 reset_workspace() {
-  rm -r .android/; rm -r cmdline-tools/; rm -r platforms/; rm -r .knowPackages; rm -r cmdline-tools/; rm -r system-images/; rm -r licenses/; rm -r emulator/; rm -r .temp/; rm .knownPackages
+  rm $ANDROID_HOME
 }
 
 install() {
