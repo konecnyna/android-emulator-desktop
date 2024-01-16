@@ -5,12 +5,14 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.defkon.androidemulator.models.AvdEntity
 import com.defkon.androidemulator.sdkmanager.AvdStateEvent
 import com.defkon.androidemulator.sdkmanager.SdkManager
 import com.defkon.androidemulator.sdkmanager.SetupStateEvent
@@ -25,24 +27,35 @@ import org.jetbrains.compose.resources.painterResource
 
 val sdkManager = SdkManager()
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
-    var emulators  by remember { mutableStateOf("None") }
+    var loading by remember { mutableStateOf(true) }
+    var emulators: List<AvdEntity> by remember { mutableStateOf(listOf()) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             sdkManager.isInstalled().collect {
                 if (it is AvdStateEvent.Success) {
-                    emulators = it.avds.map { avd -> avd.name }.joinToString { name -> "$name" }
+                    emulators = it.avds
                 }
             }
+            loading = false
         }
     }
 
     MaterialTheme {
-        if (emulators.isNotEmpty()) {
-            Text(text = emulators)
+        if (emulators.isNotEmpty() && !loading) {
+            Text(text = emulators.map { avd -> avd.name }.joinToString { name -> "$name" })
+        } else if (loading) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.width(64.dp),
+                )
+            }
         } else {
             InstallScreen()
         }

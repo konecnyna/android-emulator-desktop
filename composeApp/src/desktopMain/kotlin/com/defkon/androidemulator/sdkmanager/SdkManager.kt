@@ -47,11 +47,6 @@ class SdkManager {
 
     fun setup(console: (String) -> Unit): Flow<SetupStateEvent> = flow {
         emit(SetupStateEvent.Initializing)
-        val cpu = getCpuType()
-        if (cpu != CpuType.x86_64) {
-            emit(SetupStateEvent.Error(message = "Error: Unsupported cpu type ($cpu)"))
-            return@flow
-        }
 
         emit(SetupStateEvent.DownloadDependencies)
         runStep(SetupStateEvent.DownloadDependencies) {
@@ -71,18 +66,6 @@ class SdkManager {
         emit(SetupStateEvent.LaunchAvd)
         runStep(SetupStateEvent.LaunchAvd, DEFAULT_AVD_NAME)  {
             console(it)
-        }
-    }
-
-
-    private fun getCpuType(): CpuType {
-        val type = shellManager.runCommand(ShellCommand(
-            cmd = listOf("uname", "-m"),
-        ))
-
-        return when (type) {
-            is ShellResult.Failure -> CpuType.unknown
-            is ShellResult.Success -> enumValueOf<CpuType>(type.output)
         }
     }
 
@@ -123,11 +106,4 @@ sealed interface AvdStateEvent {
     data class Success(val avds: List<AvdEntity>): AvdStateEvent
     data class Error(val message: String): AvdStateEvent
 
-}
-
-
-enum class CpuType {
-    x86_64,
-    arm64,
-    unknown
 }

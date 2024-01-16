@@ -16,6 +16,24 @@ export ANDROID_SDK_ROOT=$ANDROID_HOME
 export ANDROID_AVD_HOME="$ANDROID_HOME/.android/avd"
 export ANDROID_EMULATOR_HOME="$ANDROID_HOME/.android"
 
+# Initialize the variable
+CPU_TYPE=""
+# Determine CPU_TYPE and set DEFAULT_EMULATOR_IMAGE
+arch=$(uname -m)
+case $arch in
+    arm* | aarch64)
+        CPU_TYPE="arm64-v8a"
+        ;;
+    x86_64)
+        CPU_TYPE="x86_64"
+        ;;
+    *)
+        echo "Unsupported architecture: $arch"
+        exit 1
+        ;;
+esac
+DEFAULT_EMULATOR_IMAGE="system-images;android-33;google_apis_playstore;$CPU_TYPE"
+
 download_sdk_tools() {
     local cmdline_tools_dir="$ANDROID_HOME/cmdline-tools"
     local download_url="https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip"
@@ -68,12 +86,13 @@ install_system_image() {
   # Emulator launch fails without empty dir
   mkdir "$ANDROID_HOME/platforms"
   mkdir "$ANDROID_HOME/platform-tools"
+
   sdkmanager --update
-  yes|sdkmanager --verbose --sdk_root="$ANDROID_HOME" "system-images;android-33;google_apis_playstore;x86_64"
+  yes|sdkmanager --verbose --sdk_root="$ANDROID_HOME" "$DEFAULT_EMULATOR_IMAGE"
 }
 
 create_avd() {
-  echo "no"|avdmanager --verbose create avd --name "$1" --package 'system-images;android-33;google_apis_playstore;x86_64' --device pixel_7_pro
+  echo "no"|avdmanager --verbose create avd --name "$1" --package "$DEFAULT_EMULATOR_IMAGE" --device pixel_7_pro
 }
 
 launch_avd() {
