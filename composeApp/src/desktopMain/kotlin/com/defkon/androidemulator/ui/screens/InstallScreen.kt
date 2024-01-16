@@ -8,6 +8,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.defkon.androidemulator.managers.SetupStateEvent
 import com.defkon.androidemulator.ui.sdkManager
@@ -18,7 +19,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun InstallScreen() {
+fun InstallScreen(onComplete: () -> Unit) {
     var installing by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("Create Android Emulator") }
     var console by remember { mutableStateOf("") }
@@ -35,12 +36,12 @@ fun InstallScreen() {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = status)
+        Text(text = status, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
         AnimatedVisibility(visible = installing) {
             Box(
-                modifier = Modifier.padding(32.dp),
+                modifier = Modifier.padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -70,7 +71,7 @@ fun InstallScreen() {
                             console = it.message
                             installing = false
                         }
-
+                        SetupStateEvent.Finished -> onComplete()
                         else -> {
                             status = it.stepName
                         }

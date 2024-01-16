@@ -17,10 +17,10 @@ fun DeviceManagementItem(device: AvdEntity, onLaunchClicked: (AvdEntity) -> Unit
             modifier = Modifier.weight(2f)
         ) {
             Text(
-                text = "Device name: ${device.name}",
+                text = "Name: ${device.name}",
                 fontWeight = FontWeight.Bold
             )
-            Text(text = "Device type: ${device.device}")
+            Text(text = "Type: ${device.device}")
         }
 
         Row(

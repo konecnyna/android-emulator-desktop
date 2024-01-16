@@ -24,7 +24,14 @@ class SdkManager {
         shellManager.runSdkUtilShellCommand(
             SetupStateEvent.InstallTools
         ) {
-            console(it)
+            val regex = """(\d+%) (\w+)""".toRegex()
+            val matchResult = regex.find(it)
+            if (matchResult != null) {
+                val (percentage, word) = matchResult.destructured
+                console("$word - $percentage")
+            } else {
+                console(it)
+            }
         }
 
         emit(SetupStateEvent.CreateAvd)
@@ -34,12 +41,7 @@ class SdkManager {
             console(it)
         }
 
-        emit(SetupStateEvent.LaunchAvd)
-        shellManager.runSdkUtilShellCommand(
-            SetupStateEvent.LaunchAvd, DEFAULT_AVD_NAME
-        ) {
-            console(it)
-        }
+        emit(SetupStateEvent.Finished)
     }
 
     companion object {
@@ -57,6 +59,7 @@ sealed class SetupStateEvent(val stepName: String, val shellCmd: String) {
     data object CreateAvd : SetupStateEvent(stepName = "Create Avd", shellCmd = "create_avd")
     data object LaunchAvd : SetupStateEvent(stepName = "Launch Avd", shellCmd = "launch_avd")
     data object ListAvds : SetupStateEvent(stepName = "List Avd", shellCmd = "list_avds")
+    data object Finished : SetupStateEvent(stepName = "Finish", shellCmd = "")
     data class Error(val message: String) : SetupStateEvent(stepName = "Error", shellCmd = "")
     data class Console(val message: String) : SetupStateEvent(stepName = "Console", shellCmd = "")
 }
